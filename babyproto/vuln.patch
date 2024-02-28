@@ -1,0 +1,53 @@
+--- ./app.js	2023-10-17 01:21:19.000000000 -0400
++++ ./patch.js	2023-10-17 01:21:16.000000000 -0400
+@@ -2,8 +2,9 @@
+ const path = require('path');
+ const bodyParser = require('body-parser');
+ const fs = require('fs')
++const cors = require('cors');
+ const app = express();
+-
++app.use(cors())
+ app.use(bodyParser.urlencoded({ extended: true }));
+ app.use(bodyParser.json());
+ app.use('/static', express.static(__dirname + '/public'));
+@@ -40,19 +41,22 @@
+ function deepMerge(target, source) {
+     let output = Object.assign({}, target);
+     if (isObject(target) && isObject(source)) {
+-        for (let key in source){
+-            if(source.hasOwnProperty(key)){
+-                if(isObject(source[key])){
+-                    deepMerge(target[key], source[key])
+-                }else{
+-                    target[key] = source[key]
+-                }
+-            }
++        for (let key in source){
++			if(key !== 'prototype' || key !== '-_proto__' || key !== 'consstructor'){
++				if(source.hasOwnProperty(key)){
++				    if(isObject(source[key])){
++				        deepMerge(target[key], source[key])
++				    }else{
++				        target[key] = source[key]
++				    }
++				}
++			}
+         }
+     }
+     return output;
+ }
+ 
++
+ /**
+  * Render the Map
+  */
+@@ -84,7 +88,7 @@
+  */
+ app.post('/add', (req, res) => {
+     deepMerge(AQMAP, req.body);
+-    res.send('Added!')
++    res.json({ message: 'Added!' });
+ })
+ 
+ /**
